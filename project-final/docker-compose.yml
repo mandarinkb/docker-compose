@@ -1,0 +1,110 @@
+version: '3.5'
+services:    
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
+    container_name: docker-compose-elasticsearch
+    restart: always
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    environment:
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - discovery.type=single-node
+    ports:
+      - 9300:9300
+      - 9200:9200
+    networks:
+      - backend
+  mariadb:
+    image: mariadb:10.3
+    container_name: docker-compose-mariadb
+    restart: always
+    volumes: 
+      - mariadb-data:/var/lib/mysql
+    environment: 
+      - MYSQL_ROOT_PASSWORD=mandarinkb
+    ports:
+      - 3306:3306
+    networks:
+      - backend   
+  redis:
+    image: redis:latest
+    container_name: docker-compose-redis
+    restart: always
+    ports:
+      - 6379:6379
+    networks:
+      - backend
+  app-api:
+    depends_on:
+      - mariadb
+      - elasticsearch
+    image: mandarinkb/project-final-api:1.0
+    #  expose:
+    #    - "8888"
+    ports:
+      - 8888:8888    
+    networks:
+      - backend 
+  load-balancer:
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      # - ./var/log/nginx:/var/log/nginx
+    depends_on:
+      - app-api
+    image: nginx:1.18.0-alpine
+    container_name: docker-compose-load-balancer
+    ports:
+      - 9999:9999
+    networks:
+      - backend 
+  app-ui:
+    depends_on:
+      - app-api
+    image: mandarinkb/project-final-ui-controller:1.0
+    container_name: docker-compose-ui-controller
+    ports:
+      - 4200:80
+    networks:
+      - backend
+  start-bot:
+    depends_on:
+      - mariadb
+      - elasticsearch
+      - redis
+    image: mandarinkb/project-final-start-bot:1.0
+    container_name: docker-compose-start-bot
+    ports:
+     - 8081:8081
+    networks: 
+      - backend  
+  fetch-url-bot:
+    depends_on:
+      - mariadb
+      - elasticsearch
+      - redis
+    image: mandarinkb/project-final-fetch-url-bot:1.0
+    container_name: docker-compose-fetch-url-bot
+    # ports:
+    #   - 8082:8082
+    networks: 
+      - backend    
+  web-scrapping-bot:
+    depends_on:
+      - mariadb
+      - elasticsearch
+      - redis
+    image: mandarinkb/project-final-web-scrapping-bot:1.0
+    # container_name: docker-compose-web-scrapping-bot
+    # ports:
+    #   - 8083:8083
+    networks: 
+      - backend           
+networks:
+  backend:       
+volumes:
+  elasticsearch-data:
+  mariadb-data:
+
+# parth /var/lib/docker/volumes
+# comment press ctrl+/
