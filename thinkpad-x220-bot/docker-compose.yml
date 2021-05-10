@@ -1,0 +1,31 @@
+version: '3.5'
+services:  
+  redis:
+    image: redis:latest
+    container_name: docker-compose-redis
+    restart: always
+    ports:
+      - 6379:6379
+    networks:
+      - backend
+  start-bot:
+    image: start-bot
+    container_name: docker-compose-start-bot
+    networks: 
+      - backend  
+  fetch-url-bot:
+    image: fetch-url-bot
+    networks: 
+      - backend    
+  web-scrapping-bot:
+    image: web-scrapping-bot
+    networks: 
+      - backend           
+networks:
+  backend:       
+# volumes:
+#   elasticsearch-data:
+#   mariadb-data:
+
+# parth /var/lib/docker/volumes
+# comment press ctrl+/
